@@ -94,7 +94,10 @@ router.get('/:id', (req, res) => {
       if (!List) {
         return res.status(404).json('没有任何数据');
       }
-      res.json(List);
+      res.json({
+        status: 'ok',
+        queryOne: List,
+      });
     })
     .catch(err => res.status(404).json(err));
 });
@@ -104,31 +107,55 @@ router.get('/:id', (req, res) => {
 //@access Private
 
 router.post('/edit/:id', (req, res) => {
-  const ListFields = { allQuantity: 0, allPrice: 0, allMyPrice: 0, allStatements: 0 };
-
-  if (req.body.uploadData) {
-    ListFields.uploadData = req.body.uploadData;
-    let temData = ListFields.uploadData;
-    for (let i = 0; i < temData.length; i++) {
-      const cur = temData[i];
-
-      ListFields.allStatements += Number(cur.statements);
-      let qty = cur.quantity - Number(cur.return);
-      cur.totlePrice = qty * cur.price;
-      cur.totleMyPrice = qty * cur.myPrice;
-      ListFields.allQuantity += qty;
-      if (cur.quantity * cur.price) ListFields.allPrice += qty * cur.price;
-      if (cur.quantity * cur.myPrice) ListFields.allMyPrice += qty * cur.myPrice;
+  const { data } = req.body;
+  const { id } = req.params;
+  let jiesuan_total = 0,
+    dtotal = 0,
+    ctotal = 0;
+  if (data) {
+    for (let i = 0; i < data.length - 1; i++) {
+      let cur = req.body.data[i];
+      jiesuan_total += Number(cur.settlement);
+      dtotal += (cur.quantity-cur.back_quantity) * cur.dingdan_price;
+      ctotal += (cur.quantity-cur.back_quantity) * cur.caigou_price;
     }
   }
-  if (req.body.vender) ListFields.vender = req.body.vender;
-  if (req.body.date) ListFields.date = req.body.date;
-  if (req.body.remark) ListFields.remark = req.body.remark;
-  if (req.body.type) ListFields.type = req.body.type;
 
-  List.findOneAndUpdate({ _id: req.params.id }, { $set: ListFields }, { new: true }).then(List =>
-    res.json(List)
-  );
+  List.findOneAndUpdate(
+    { _id: id },
+    {
+      $set: {
+        data: data,
+        jiesuan_price: jiesuan_total.toFixed(2),
+        dingdan_totalPrice: dtotal.toFixed(2),
+        caigou_totalPrice: ctotal.toFixed(2),
+      },
+    }
+  ).then(List => res.json(List));
+
+  // List.findOneAndUpdate({ _id: req.params.id }, { $set: ListFields }, { new: true }).then(List =>
+  //   res.json(List)
+  // );
+
+  // if (req.body.uploadData) {
+  //   ListFields.uploadData = req.body.uploadData;
+  //   let temData = ListFields.uploadData;
+  //   for (let i = 0; i < temData.length; i++) {
+  //     const cur = temData[i];
+
+  //     ListFields.allStatements += Number(cur.statements);
+  //     let qty = cur.quantity - Number(cur.return);
+  //     cur.totlePrice = qty * cur.price;
+  //     cur.totleMyPrice = qty * cur.myPrice;
+  //     ListFields.allQuantity += qty;
+  //     if (cur.quantity * cur.price) ListFields.allPrice += qty * cur.price;
+  //     if (cur.quantity * cur.myPrice) ListFields.allMyPrice += qty * cur.myPrice;
+  //   }
+  // }
+  // if (req.body.vender) ListFields.vender = req.body.vender;
+  // if (req.body.date) ListFields.date = req.body.date;
+  // if (req.body.remark) ListFields.remark = req.body.remark;
+  // if (req.body.type) ListFields.type = req.body.type;
 });
 
 //$route POST api/Lists/delete/:id

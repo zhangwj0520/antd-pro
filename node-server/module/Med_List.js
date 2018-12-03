@@ -20,7 +20,7 @@ const ProfileSchema = new Schema({
     rquired: true,
   },
   data: {
-    type: Object,
+    type: Array,
     rquired: true,
   },
   onWin: {
@@ -45,6 +45,7 @@ const ProfileSchema = new Schema({
     type: Number,
     rquired: true,
   },
+  //结算总金额
   jiesuan_price: {
     type: Number,
     default: 0,
