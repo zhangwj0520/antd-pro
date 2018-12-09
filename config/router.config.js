@@ -46,6 +46,7 @@ export default [
         path: '/bund',
         name: 'bund',
         icon: 'form',
+        authority: ['admin'],
         routes: [
           // {
           //   path: '/bund/bundlist',
@@ -68,7 +69,7 @@ export default [
                 component: './Bund/BundList',
               },
               {
-                path: '/bund/bundlist/detail',
+                path: '/bund/bundlist/detail/:id',
                 name: 'detail',
                 //hideInMenu: true,
                 component: './Bund/Detail',
@@ -90,11 +91,57 @@ export default [
         path: '/file',
         name: 'file',
         icon: 'file',
+        authority: ['admin'],
         routes: [
           {
             path: '/file/upload',
             name: 'upload',
             component: './File/Upload',
+          },
+          {
+            path: '/file/hh',
+            name: 'test',
+            component: './Bund/test',
+          },
+        ],
+      },
+      //图表
+      //<Icon type="bar-chart" />
+      {
+        path: '/chart',
+        name: 'chart',
+        icon: 'bar-chart',
+        authority: ['admin'],
+        routes: [
+          {
+            path: '/chart/curved',
+            name: 'curved',
+            component: './Chart/curved',
+          },
+          {
+            path: '/chart/mycurved',
+            name: 'mycurved',
+            component: './Chart/mycurved',
+          },
+        ],
+      },
+      //权限
+      //<Icon type="bar-chart" />
+      {
+        path: '/auth',
+        name: 'auth',
+        icon: 'bar-chart',
+        authority: ['admin'],
+        routes: [
+          {
+            path: '/auth/adduser',
+            name: 'adduser',
+            component: './Auth/AddUsers',
+          },
+          {
+            path: '/auth/auth',
+            name: 'auth',
+            component: './Auth/auth',
           },
         ],
       },
@@ -149,6 +196,7 @@ export default [
         path: '/list',
         icon: 'table',
         name: 'list',
+        authority: ['superAdmin'],
         routes: [
           {
             path: '/list/table-list',
@@ -197,6 +245,7 @@ export default [
         path: '/profile',
         name: 'profile',
         icon: 'profile',
+        authority: ['superAdmin'],
         routes: [
           // profile
           {
@@ -216,6 +265,7 @@ export default [
         name: 'result',
         icon: 'check-circle-o',
         path: '/result',
+        authority: ['superAdmin'],
         routes: [
           // result
           {
@@ -230,6 +280,7 @@ export default [
         name: 'exception',
         icon: 'warning',
         path: '/exception',
+        authority: ['superAdmin'],
         routes: [
           // exception
           {
@@ -259,6 +310,7 @@ export default [
         name: 'account',
         icon: 'user',
         path: '/account',
+        authority: ['superAdmin'],
         routes: [
           {
             path: '/account/center',

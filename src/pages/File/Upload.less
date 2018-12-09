@@ -35,6 +35,50 @@
     margin-bottom: 24px;
   }
 }
+.file{
+  margin-top: 20px;
+  margin-left: 20px;
+}
+.button{
+  height: 28px;
+  width: 80px;
+  padding: 0;
+  text-align: center;
+}
+
+  /* 文件上传样式 */
+
+  .btn_addPic {
+    //display: inline-block;
+    position: relative;
+    //padding-top: 10px;
+    // width: 80px;
+    overflow: hidden;
+    color: #000;
+    cursor: pointer;
+    //text-align: center;
+    font-size: 14px;
+  }
+
+  .btn_addPic:hover {
+    cursor: pointer;
+  }
+
+  .filePrew {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    // width: 140px;
+    height: 39px;
+    opacity: 0;
+    filter: alpha(opacity=0);
+    /* 兼容IE */
+  }
+  .h_title{
+    position: relative;
+    margin-left: 30px;
+  }
 
 @media screen and (max-width: @screen-lg) {
   .tableListForm :global(.ant-form-item) {

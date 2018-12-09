@@ -26,6 +26,10 @@ class HeaderView extends PureComponent {
 
   componentDidMount() {
     document.addEventListener('scroll', this.handScroll, { passive: true });
+    const userName = JSON.parse(localStorage.getItem('userName'));
+    if (!userName) {
+      router.push('/user/login');
+    }
   }
 
   componentWillUnmount() {

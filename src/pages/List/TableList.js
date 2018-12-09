@@ -320,6 +320,7 @@ class TableList extends PureComponent {
           value: 3,
         },
       ],
+      
       render(val) {
         return <Badge status={statusMap[val]} text={status[val]} />;
       },

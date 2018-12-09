@@ -20,6 +20,7 @@ import {
   Divider,
   Steps,
   Radio,
+  Popconfirm,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
@@ -40,10 +41,8 @@ const statusMap = ['未结算', '部分结算', '已结算'];
 const status = ['未结算', '部分结算', '已结算'];
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ bund, rule, loading }) => ({
+@connect(({ bund }) => ({
   bund,
-  rule,
-  loading: loading.models.rule,
 }))
 @Form.create()
 class TableList extends PureComponent {
@@ -54,20 +53,38 @@ class TableList extends PureComponent {
     selectedRows: [],
     formValues: {},
     stepFormValues: {},
+    editable: false,
   };
 
   columns = [
     {
-      title: '订单日期',
-      dataIndex: 'time',
-      sorter: (a, b) => a.time - b.time,
-      key: 'time',
-      render: val => <span>{moment(val).format('YYYY年MM月DD日')}</span>,
-    },
-    {
       title: '订单编号',
       dataIndex: 'sn',
       key: 'sn',
+    },
+    {
+      title: '发货日期',
+      dataIndex: 'fahuo_time',
+      editable: true,
+      sorter: (a, b) => a.time - b.time,
+      key: 'fahuo_time',
+      //render: val => <span>{moment(val).format('YYYY年MM月DD日')}</span>,
+      //render: val => <span>{val}</span>,
+      render: (text, record) => {
+        if (record.editing) {
+          return (
+            <DatePicker
+              onChange={(data, fahuo_time) => this.onSave(data, fahuo_time, record)}
+              placeholder="选择发货日期"
+            />
+          );
+        }
+        return (
+          <span onClick={this.toggleEdit.bind(this, record._id)}>
+            {text ? text : '请选择发货日期'}
+          </span>
+        );
+      },
     },
     {
       title: '订单厂家',
@@ -78,6 +95,11 @@ class TableList extends PureComponent {
       title: '总订单金额(元)',
       dataIndex: 'dingdan_totalPrice',
       key: 'dingdan_totalPrice',
+    },
+    {
+      title: '总中标金额(元)',
+      dataIndex: 'zhongbiao_totalPrice',
+      key: 'zhongbiao_totalPrice',
     },
     {
       title: '总采购金额(元)',
@@ -120,22 +142,66 @@ class TableList extends PureComponent {
       title: '操作',
       render: (text, record) => (
         <Fragment>
-          <a onClick={() => this.deleteLite(record._id)}>删除</a>
+          {/* <a onClick={() => this.deleteLite(record._id)}>删除</a> */}
+          <Popconfirm title="是否要删除此行？" onConfirm={() => this.deleteLite(record._id)}>
+            <a>删除</a>
+          </Popconfirm>
           <Divider type="vertical" />
-          <a onClick={() => this.detailList(record._id)}>查看详细</a>
+          <a onClick={() => this.detailList(record)}>查看详细</a>
         </Fragment>
       ),
     },
   ];
 
-  componentDidMount() {
+  componentWillMount() {
     const { dispatch } = this.props;
-    dispatch({
-      type: 'rule/fetch',
-    });
     dispatch({
       type: 'bund/fetch',
     });
+  }
+
+  // static getDerivedStateFromProps(props, state) {
+  //   const { dispatch } = props;
+  //   dispatch({
+  //     type: 'bund/fetch',
+  //   });
+  // }
+  onSave = (data, fahuo_time, record) => {
+    console.log(record._id);
+    console.log(fahuo_time);
+
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'bund/updateTime',
+      payload: { id: record._id, fahuo_time },
+    });
+    this.toggleEdit();
+  };
+
+  getRowByKey(name) {
+    const { data } = this.state;
+    let target, key;
+    //return  data.filter(item => item.name === name)[0];
+    data.map((item, index) => {
+      if (item.name === name) {
+        target = item;
+        key = index;
+      }
+    });
+    return { target, key };
+  }
+  toggleEdit(id) {
+    // const editing = !this.state.editing;
+    // this.setState({ editing });
+    console.log(id);
+    //const { data, editable } = this.state;
+    // if (editable) {
+    //   const { target, key } = this.getRowByKey(name);
+    //   data[key].editable = true;
+    //   this.setState({ data, target, key, editable: false });
+    // } else {
+    //   message.warning('请先保存未完成的编辑任务!!!');
+    // }
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
@@ -158,10 +224,10 @@ class TableList extends PureComponent {
       params.sorter = `${sorter.field}_${sorter.order}`;
     }
 
-    dispatch({
-      type: 'rule/fetch',
-      payload: params,
-    });
+    // dispatch({
+    //   type: 'rule/fetch',
+    //   payload: params,
+    // });
   };
 
   handleFormReset = () => {
@@ -170,10 +236,10 @@ class TableList extends PureComponent {
     this.setState({
       formValues: {},
     });
-    dispatch({
-      type: 'rule/fetch',
-      payload: {},
-    });
+    // dispatch({
+    //   type: 'rule/fetch',
+    //   payload: {},
+    // });
   };
 
   toggleForm = () => {
@@ -250,11 +316,9 @@ class TableList extends PureComponent {
       payload: { id },
     });
   };
-  detailList = id => {
-    router.push({
-      pathname: '/bund/bundlist/detail',
-      query: { id },
-    });
+  detailList = record => {
+    const { dispatch } = this.props;
+    router.push(`/bund/bundlist/detail/${record._id}`);
   };
 
   renderSimpleForm() {
@@ -377,13 +441,14 @@ class TableList extends PureComponent {
   }
 
   render() {
-    // console.log(this.props.bund);
+    //console.log(this.props.bund);
     // console.log(this.props.rule);
     const {
       //rule: { data },
       bund: { data },
       loading,
     } = this.props;
+    console.log(data);
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>

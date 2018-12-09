@@ -7,11 +7,15 @@ const ProfileSchema = new Schema({
     type: String,
     rquired: true,
   },
-  vender: {
+  dingdan_time: {
     type: String,
     rquired: true,
   },
-  time: {
+  fahuo_time: {
+    type: String,
+    rquired: true,
+  },
+  vender: {
     type: String,
     rquired: true,
   },
@@ -23,14 +27,14 @@ const ProfileSchema = new Schema({
     type: Array,
     rquired: true,
   },
-  onWin: {
-    type: Boolean,
-  },
-  remark: {
-    type: String,
-  },
+  // onWin: {
+  //   type: Boolean,
+  // },
+  // remark: {
+  //   type: String,
+  // },
   key: {
-    type: Number,
+    type: String,
     rquired: true,
   },
   status: {
@@ -39,11 +43,15 @@ const ProfileSchema = new Schema({
   },
   dingdan_totalPrice: {
     type: Number,
-    rquired: true,
+    //rquired: true,
   },
   caigou_totalPrice: {
     type: Number,
-    rquired: true,
+    //rquired: true,
+  },
+  zhongbiao_totalPrice: {
+    type: Number,
+    default: 0,
   },
   //结算总金额
   jiesuan_price: {

@@ -20,28 +20,29 @@ router.get('/test', (req, res) => {
 //@access public
 router.post('/register', (req, res) => {
   //查询数据库中是否有该用户
+  const {userName,passWord}=req.body
   MedUsers.findOne({
-    userName: req.body.userName,
+    userName: userName,
   }).then(user => {
     if (user) {
-      return res.status(400).json('邮箱已被注册!');
+      return res.json({ status: 'existence' });
     } else {
-      const avatar = gravatar.url(req.body.email, {
-        s: '200',
-        r: 'pg',
-        d: 'mm',
-      });
-      const newUser = new MedUsers({
-        userName: req.body.userName,
-        avatar,
-        passWord: req.body.passWord,
-      });
+      // const avatar = gravatar.url(req.body.email, {
+      //   s: '200',
+      //   r: 'pg',
+      //   d: 'mm',
+      // });
+     
       let md5 = crypto.createHash('md5');
-      let newPass = md5.update(newUser.passWord).digest('hex');
-      newUser.passWord = newPass;
+      let newPass = md5.update(passWord).digest('hex');
+      const newUser = new MedUsers({
+        userName: userName,
+        //avatar,
+        passWord: newPass,
+      });
       newUser
         .save()
-        .then(user => res.json(user))
+        .then(() => res.json({ status: 'ok' }))
         .catch(err => console.log(err));
     }
   });
@@ -61,15 +62,19 @@ router.post('/login/account', (req, res) => {
       return res.send({ status: 'error', type: req.body.type, currentAuthority: 'guest' });
     }
     //密码匹配
+    //console.log(user)
+    const {passWord,currentAuthority,userName}=user
+    console.log(passWord)
+    console.log(currentAuthority)
     let md5 = crypto.createHash('md5');
     let newPass = md5.update(req.body.passWord).digest('hex');
-    if (newPass === user.passWord) {
+    if (newPass === passWord) {
       res.send({
+        userName,
         message: '登录成功',
         status: 'ok',
         type: req.body.type,
-        currentAuthority: 'admin',
-        aaa: 'aaa',
+        currentAuthority,
       });
     } else {
       return res.json({ status: 0, message: '密码错误' });

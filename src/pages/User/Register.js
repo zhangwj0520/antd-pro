@@ -45,7 +45,6 @@ class Register extends Component {
     confirmDirty: false,
     visible: false,
     help: '',
-    prefix: '86',
   };
 
   componentDidUpdate() {
@@ -94,12 +93,10 @@ class Register extends Component {
     const { form, dispatch } = this.props;
     form.validateFields({ force: true }, (err, values) => {
       if (!err) {
-        const { prefix } = this.state;
         dispatch({
           type: 'register/submit',
           payload: {
             ...values,
-            prefix,
           },
         });
       }
@@ -114,7 +111,7 @@ class Register extends Component {
 
   checkConfirm = (rule, value, callback) => {
     const { form } = this.props;
-    if (value && value !== form.getFieldValue('password')) {
+    if (value && value !== form.getFieldValue('passWord')) {
       callback(formatMessage({ id: 'validation.password.twice' }));
     } else {
       callback();
@@ -184,6 +181,22 @@ class Register extends Component {
         </h3>
         <Form onSubmit={this.handleSubmit}>
           <FormItem>
+            {getFieldDecorator('userName', {
+              rules: [
+                {
+                  required: true,
+                  message: formatMessage({ id: 'validation.userName.required' }),
+                },
+                {
+                  min: 4,
+                  message: formatMessage({ id: 'validation.userName.wrong-min' }),
+                },
+              ],
+            })(
+              <Input size="large" placeholder={formatMessage({ id: 'form.userName.placeholder' })} />
+            )}
+          </FormItem>
+          {/* <FormItem>
             {getFieldDecorator('mail', {
               rules: [
                 {
@@ -198,7 +211,7 @@ class Register extends Component {
             })(
               <Input size="large" placeholder={formatMessage({ id: 'form.email.placeholder' })} />
             )}
-          </FormItem>
+          </FormItem> */}
           <FormItem help={help}>
             <Popover
               getPopupContainer={node => node.parentNode}
@@ -215,7 +228,7 @@ class Register extends Component {
               placement="right"
               visible={visible}
             >
-              {getFieldDecorator('password', {
+              {getFieldDecorator('passWord', {
                 rules: [
                   {
                     validator: this.checkPassword,
@@ -224,7 +237,7 @@ class Register extends Component {
               })(
                 <Input
                   size="large"
-                  type="password"
+                  type="passWord"
                   placeholder={formatMessage({ id: 'form.password.placeholder' })}
                 />
               )}
@@ -249,7 +262,7 @@ class Register extends Component {
               />
             )}
           </FormItem>
-          <FormItem>
+          {/* <FormItem>
             <InputGroup compact>
               <Select
                 size="large"
@@ -311,6 +324,7 @@ class Register extends Component {
               </Col>
             </Row>
           </FormItem>
+          */}
           <FormItem>
             <Button
               size="large"

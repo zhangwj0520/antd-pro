@@ -16,7 +16,15 @@ export function getAuthority(str) {
   return authority || ['admin'];
 }
 
-export function setAuthority(authority) {
-  const proAuthority = typeof authority === 'string' ? [authority] : authority;
-  return localStorage.setItem('antd-pro-authority', JSON.stringify(proAuthority));
+export function setAuthority({userName,currentAuthority}) {
+  //const proAuthority = typeof currentAuthority === 'string' ? [currentAuthority] : currentAuthority;
+   localStorage.setItem('userName', JSON.stringify(userName));
+   localStorage.setItem('antd-pro-authority', JSON.stringify(currentAuthority));
+   return 
+}
+
+export const btnAuthority=(rightCode)=>{
+  return getAuthority().some(item => {
+    return item === rightCode;
+  });
 }

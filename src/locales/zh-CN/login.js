@@ -13,10 +13,14 @@ export default {
   'app.register.get-verification-code': '获取验证码',
   'app.register.sign-in': '使用已有账户登录',
   'app.register-result.msg': '你的账户：{email} 注册成功',
+  'app.register-result.activation-account':
+    '账号注册成功请联系负责人开通相应权限',
   'app.register-result.activation-email':
     '激活邮件已发送到你的邮箱中，邮件有效期为24小时。请及时登录邮箱，点击邮件中的链接激活帐户。',
   'app.register-result.back-home': '返回首页',
   'app.register-result.view-mailbox': '查看邮箱',
+  'validation.userName.required': '请输入用户名！',
+  'validation.userName.wrong-min': '请至少输入5位用户名！',
   'validation.email.required': '请输入邮箱地址！',
   'validation.email.wrong-format': '邮箱地址格式错误！',
   'validation.password.required': '请输入密码！',

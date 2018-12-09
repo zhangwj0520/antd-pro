@@ -1,23 +1,24 @@
 import {
   queryAllList,
   removeList,
+  queryOneList,
+  updateOneList,
   removeFakeList,
   addFakeList,
   updateFakeList,
+  updateListTime
 } from '@/services/api';
 
 export default {
   namespace: 'bund',
-
-  // state: {
-  //   data: [],
-  // },
-
   state: {
     data: {
       list: [],
       pagination: {},
     },
+    queryOneList:{},
+    queryOneData:[],
+    detailList:{}
   },
 
   effects: {
@@ -35,6 +36,26 @@ export default {
         payload: response,
       });
     },
+    *fetchOne({ payload }, { call, put }) {
+      const response = yield call(queryOneList, payload);
+      yield put({
+        type: 'queryOne',
+        payload: response.queryOne,
+      });
+    },
+    *updateOne({ payload }, { call, put }) {
+      const response = yield call(updateOneList, payload);
+    },
+    //更新订单时间
+    *updateTime({ payload }, { call, put }) {
+      const response = yield call(updateListTime, payload);
+      yield put({
+        type: 'queryList',
+        payload: response,
+      });
+    },
+
+    
 
     *appendFetch({ payload }, { call, put }) {
       const response = yield call(queryFakeList, payload);
@@ -63,6 +84,19 @@ export default {
       return {
         ...state,
         data: { list: payload },
+      };
+    },
+    queryOne(state, { payload }) {
+      return {
+        ...state,
+        queryOneList: payload ,
+        queryOneData:payload.data,
+      };
+    },
+    setOneList(state, { payload }) {
+      return {
+        ...state,
+        detailList: payload ,
       };
     },
     appendList(state, action) {

@@ -55,14 +55,15 @@ class BasicLayout extends React.PureComponent {
     this.matchParamsPath = memoizeOne(this.matchParamsPath, isEqual);
   }
 
+
   componentDidMount() {
     const {
       dispatch,
       route: { routes, authority },
     } = this.props;
-    dispatch({
-      type: 'user/fetchCurrent',
-    });
+    // dispatch({
+    //   type: 'user/fetchCurrent',
+    // });
     dispatch({
       type: 'setting/getSetting',
     });
@@ -142,7 +143,7 @@ class BasicLayout extends React.PureComponent {
     const { fixedHeader } = this.props;
     return {
       margin: '24px 24px 0',
-      paddingTop: fixedHeader ? 64 : 0,
+      paddingTop: fixedHeader ? 50 : 0,
     };
   };
 

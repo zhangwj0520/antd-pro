@@ -12,6 +12,7 @@ import Field from './Field';
 import WaterWave from './WaterWave';
 import TagCloud from './TagCloud';
 import TimelineChart from './TimelineChart';
+import TimelineChart2 from './TimelineChart2';
 
 const yuan = val => `¥ ${numeral(val).format('0,0')}`;
 

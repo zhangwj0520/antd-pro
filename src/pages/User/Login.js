@@ -65,6 +65,7 @@ class LoginPage extends Component {
 
   //登录错误提示
   loginError = (status, type, submitting) => {
+    console.log(status)
     if (type === 'account' && !submitting) {
       if (status === 'error') {
         return this.renderMessage(formatMessage({ id: 'app.login.message-invalid-credentials' }));

@@ -22,8 +22,45 @@ export async function queryAllList() {
 }
 //删除订单
 export async function removeList(params) {
-  console.log(params);
   return request('/api/med/list/delete', {
+    method: 'POST',
+    body: params,
+  });
+}
+//获取某个订单
+export async function queryOneList(params) {
+  return request(`/api/med/list/${params}`);
+}
+//更新某个订单
+export async function updateOneList(params) {
+  //console.log(params)
+  const {id,data}=params
+  return request(`/api/med/list/edit/${id}`, {
+    method: 'POST',
+    body: {data},
+  });
+}
+//更新时间
+export async function updateListTime(params) {
+  console.log(params)
+  const {id,fahuo_time}=params
+  return request(`/api/med/list/time/${id}`, {
+    method: 'POST',
+    body: {fahuo_time},
+  });
+}
+//用户注册
+export async function fakeRegister(params) {
+  return request('/api/med/user/register', {
+    ///api/med/user/login/register
+    method: 'POST',
+    body: params,
+  });
+}
+//获取med for name
+export async function fakeMedChartData(params) {
+  //console.log(params)
+  return request('/api/med/list/find', {
     method: 'POST',
     body: params,
   });
@@ -132,12 +169,7 @@ export async function updateFakeList(params) {
   });
 }
 
-export async function fakeRegister(params) {
-  return request('/api/register', {
-    method: 'POST',
-    body: params,
-  });
-}
+
 
 export async function queryNotices() {
   return request('/api/notices');

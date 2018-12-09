@@ -16,14 +16,12 @@ import {
   Popconfirm,
   Divider,
   Tag,
-  Switch,
 } from 'antd';
 import { connect } from 'dva';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 //import TableForm from './TableForm';
 import isEqual from 'lodash/isEqual';
 import styles from './style.less';
-import { queryOneList, updateOneList } from '@/services/api';
 const Option = Select.Option;
 
 @connect(({ bund }) => ({
@@ -37,49 +35,60 @@ class AdvancedForm extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      id: this.props.match.params.id,
-      oneList: {},
-      data: [],
+      detailList: this.props.bund.detailList,
+      data: this.props.bund.detailList.data,
+      id: this.props.bund.detailList._id,
       width: '100%',
       loading: false,
-      target: {},
-      key: 0,
-      editable: true,
-      total: 0,
     };
   }
 
-  componentWillMount() {
-    this.getInitData();
-  }
-  // componentDidMount() {
-  //   //console.log(this.props.bund.queryOneData);
-  // }
+  componentDidMount() {}
 
-  getInitData() {
-    const { id } = this.props.match.params;
-    queryOneList(id).then(res => {
-      const {
-        status,
-        oneList,
-        oneList: { data },
-      } = res;
-      const total = data.length;
-      if (status == 'ok') {
-        this.setState({ oneList, data, total });
-      }
-    });
+  componentWillMount() {}
+
+  getRowByKey(name, newData) {
+    const { data } = this.state;
+    return (newData || data).filter(item => item.name === name)[0];
   }
 
-  remove(name) {
-    const { data, id } = this.state;
-    const newData = data.filter(item => item.name !== name);
-    updateOneList({ data: newData, id }).then(res => {
-      const { status } = res;
-      if (status == 'ok') {
-        this.setState({ data: newData });
+  toggleEditable = (e, name) => {
+    e.preventDefault();
+    const { data } = this.state;
+    const newData = data.map(item => ({ ...item }));
+    const target = this.getRowByKey(name, newData);
+    console.log(target);
+    if (target) {
+      // 进入编辑状态时保存原始数据
+      if (!target.editable) {
+        this.cacheOriginData[name] = { ...target };
       }
+      target.editable = !target.editable;
+
+      this.setState({ data: newData });
+    }
+  };
+
+  newMember = () => {
+    const { data } = this.state;
+    const newData = data.map(item => ({ ...item }));
+    newData.unshift({
+      key: `NEW_TEMP_ID_${this.index}`,
+      quantity:'',
+      editable: true,
+      isNew: true,
+      add:true
     });
+    this.index += 1;
+    this.setState({ data: newData });
+  };
+
+  remove(key) {
+    const { data } = this.state;
+    const { onChange } = this.props;
+    const newData = data.filter(item => item.key !== key);
+    this.setState({ data: newData });
+    //onChange(newData);
   }
 
   handleKeyPress(e, key) {
@@ -89,98 +98,85 @@ class AdvancedForm extends PureComponent {
   }
 
   handleFieldChange(e, fieldName, name) {
-    let { target } = this.state;
+    console.log(e.target.value)
+    const { data } = this.state;
+    const newData = data.map(item => ({ ...item }));
+    const target = this.getRowByKey(name, newData);
+
     if (target) {
-      if (fieldName == 'zhongbiao' || fieldName == 'jiesuan') {
-        target[fieldName] = e ? 1 : 0;
+      if (fieldName == 'zhongbiao') {
+        target[fieldName] = e;
       } else {
         target[fieldName] = e.target.value;
       }
-      console.log(target);
-      this.setState({ target });
+      this.setState({ data: newData });
     }
   }
-
-  getRowByKey(name) {
+  handleFieldChange2(e, fieldName, name) {
+    //console.log(e.target.value)
     const { data } = this.state;
-    let target, key;
-    //return  data.filter(item => item.name === name)[0];
-    data.map((item, index) => {
-      if (item.name === name) {
-        target = item;
-        key = index;
-      }
-    });
-    return { target, key };
+    const newData = data.map(item => ({ ...item }));
+    const target = this.getRowByKey(name, newData);
+    if (target) {
+      target[fieldName] = e;
+      this.setState({ data: newData });
+    }
   }
 
-  toggleEditable = (e, name) => {
-    e.preventDefault();
-    const { data, editable } = this.state;
-    if (editable) {
-      const { target, key } = this.getRowByKey(name);
-      data[key].editable = true;
-      this.setState({ data, target, key, editable: false });
-    } else {
-      message.warning('请先保存未完成的编辑任务!!!');
+  saveRow(e, name) {
+    e.persist();
+    this.setState({
+      loading: true,
+    });
+    if (this.clickedCancel) {
+      this.clickedCancel = false;
+      return;
     }
-  };
-
-  saveRow() {
-    let { data, target, key, editable, id } = this.state;
-    let newData = data.map(item => ({ ...item }));
-    delete target.editable;
+    const target = this.getRowByKey(name) || {};
+    if (!target.dingdan_price || !target.quantity) {
+      message.error('请填写完整成员信息。');
+      e.target.focus();
+      this.setState({
+        loading: false,
+      });
+      return;
+    }
     delete target.isNew;
-    newData[key] = target;
-    updateOneList({ data: newData, id }).then(res => {
-      const { status } = res;
-      if (status == 'ok') {
-        this.setState({ data: newData, target: {}, editable: true });
-      }
+    this.toggleEditable(e, name);
+    const { data, id } = this.state;
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'bund/updateOne',
+      payload: { data, id },
+    });
+
+    this.setState({
+      loading: false,
     });
   }
 
-  cancel() {
-    let { data, target, key, editable } = this.state;
-    let newData = data.map(item => ({ ...item }));
-    delete target.editable;
-    newData[key] = target;
-    this.setState({ data: newData, target: {}, editable: true });
-  }
-  //添加
-  newMember = () => {
-    let { data, total, editable } = this.state;
-    if (editable) {
-      const newData = data.map(item => ({ ...item }));
-      const target = {
-        key: total,
-        editable: true,
-        isNew: true,
-        zhongbiao: '1',
-        back_quantity: '0',
-        caigou_price: '0',
-        description: '0',
-        dingdan_price: '0',
-        quantity: '0',
-        settlement: '0',
-        jiesuan: '0',
-      };
-      newData.unshift(target);
-
-      const key = 0;
-      total += 1;
-      this.setState({ data: newData, target, total, key, editable: false });
-    } else {
-      message.warning('请先保存未完成的添加!!!');
+  cancel(e, key) {
+    this.clickedCancel = true;
+    e.preventDefault();
+    const { data } = this.state;
+    const newData = data.map(item => ({ ...item }));
+    const target = this.getRowByKey(key, newData);
+    if (this.cacheOriginData[key]) {
+      Object.assign(target, this.cacheOriginData[key]);
+      delete this.cacheOriginData[key];
     }
-  };
+    target.editable = false;
+    this.setState({ data: newData });
+    this.clickedCancel = false;
+  }
 
   render() {
     const {
       form: { getFieldDecorator },
     } = this.props;
-    const { width, loading, target, data, editable, total } = this.state;
-    console.log(data);
+    const { width, loading, data } = this.state;
+    console.log(data)
+    //const expandedRowRender = record => <p>{record.description}</p>;
     const columns = [
       {
         title: '品名',
@@ -189,10 +185,10 @@ class AdvancedForm extends PureComponent {
         fixed: 'left',
         width: 100,
         render: (text, record) => {
-          if (record.isNew) {
+          if (record.add) {
             return (
               <Input
-                defaultValue={text}
+                value={text}
                 onChange={e => this.handleFieldChange(e, 'name', record.name)}
                 onKeyPress={e => this.handleKeyPress(e, record.name)}
                 placeholder="品名"
@@ -220,13 +216,17 @@ class AdvancedForm extends PureComponent {
         sorter: (a, b) => a.zhongbiao - b.zhongbiao,
         onFilter: (value, record) => record.zhongbiao == value,
         render: (text, record) => {
-          if (record.editable && !record.isNew) {
+          if (record.editable) {
             return (
-              <Switch
-                checkedChildren="是"
-                unCheckedChildren="否"
-                onChange={e => this.handleFieldChange(e, 'zhongbiao', record.name)}
-              />
+              <Select
+                size="small"
+                style={{ width: 80 }}
+                placeholder="是否中标"
+                onChange={e => this.handleFieldChange2(e, 'zhongbiao', record.name)}
+              >
+                <Option value={1}>是</Option>
+                <Option value={0}>否</Option>
+              </Select>
             );
           }
           if (text) {
@@ -240,13 +240,12 @@ class AdvancedForm extends PureComponent {
         title: '计划采购量(Kg)',
         dataIndex: 'quantity',
         key: 'quantity',
-        width: 100,
+        width: 80,
         render: (text, record) => {
-          if (record.isNew) {
+          if (record.add) {
             return (
               <Input
-                //defaultValue={(text)=>{return this.state.add?0:text}}
-                defaultValue={'0'}
+                //value={text}
                 onChange={e => this.handleFieldChange(e, 'quantity', record.quantity)}
                 onKeyPress={e => this.handleKeyPress(e, record.quantity)}
                 placeholder="计划采购量(Kg)"
@@ -262,12 +261,12 @@ class AdvancedForm extends PureComponent {
         key: 'back_quantity',
         width: 80,
         render: (text, record) => {
-          if (record.editable && !record.isNew) {
+          if (record.editable) {
             return (
               <Input
-                defaultValue={text}
-                onChange={e => this.handleFieldChange(e, 'back_quantity', record.back_quantity)}
-                onKeyPress={e => this.handleKeyPress(e, record.back_quantity)}
+                value={text}
+                onChange={e => this.handleFieldChange(e, 'back_quantity', record.name)}
+                onKeyPress={e => this.handleKeyPress(e, record.name)}
                 placeholder="退尾料(Kg)"
               />
             );
@@ -284,7 +283,7 @@ class AdvancedForm extends PureComponent {
           if (record.editable) {
             return (
               <Input
-                defaultValue={text}
+                value={text}
                 onChange={e => this.handleFieldChange(e, 'dingdan_price', record.name)}
                 onKeyPress={e => this.handleKeyPress(e, record.name)}
                 placeholder="订单单价(元)"
@@ -303,7 +302,7 @@ class AdvancedForm extends PureComponent {
           if (record.editable) {
             return (
               <Input
-                defaultValue={text}
+                value={text}
                 onChange={e => this.handleFieldChange(e, 'caigou_price', record.name)}
                 onKeyPress={e => this.handleKeyPress(e, record.name)}
                 placeholder="采购单价(元)"
@@ -340,7 +339,7 @@ class AdvancedForm extends PureComponent {
           if (record.editable) {
             return (
               <Input
-                defaultValue={text}
+                value={text}
                 onChange={e => this.handleFieldChange(e, 'settlement', record.name)}
                 onKeyPress={e => this.handleKeyPress(e, record.name)}
                 placeholder="已结算金额"
@@ -351,62 +350,9 @@ class AdvancedForm extends PureComponent {
         },
       },
       {
-        title: '是否结算',
-        dataIndex: 'jiesuan',
-        width: 140,
-        filters: [
-          {
-            text: '是',
-            value: 1,
-          },
-          {
-            text: '否',
-            value: 0,
-          },
-        ],
-        sorter: (a, b) => a.jiesuan - b.jiesuan,
-        onFilter: (value, record) => record.jiesuan == value,
-        render: (text, record) => {
-          if (record.editable) {
-            return (
-              <Switch
-                checkedChildren="是"
-                unCheckedChildren="否"
-                onChange={e => this.handleFieldChange(e, 'jiesuan', record.name)}
-              />
-            );
-          }
-          if (text) {
-            return <Tag color="#87d068">是</Tag>;
-          } else {
-            return <Tag color="magenta">否</Tag>;
-          }
-        },
-      },
-      {
-        title: '备注',
-        dataIndex: 'remark',
-        key: 'remark',
-        width: 120,
-        render: (text, record) => {
-          if (record.editable) {
-            return (
-              <Input.TextArea
-                defaultValue={text}
-                onChange={e => this.handleFieldChange(e, 'remark', record.name)}
-                onKeyPress={e => this.handleKeyPress(e, record.name)}
-                placeholder="备注"
-              />
-            );
-          }
-          return text;
-        },
-      },
-      {
         title: '品质及要求',
         dataIndex: 'description',
         key: 'description',
-        width: 200,
         render: text => text,
       },
       {
@@ -443,7 +389,7 @@ class AdvancedForm extends PureComponent {
             <span>
               <a onClick={e => this.toggleEditable(e, record.name)}>编辑</a>
               <Divider type="vertical" />
-              <Popconfirm title="是否要删除此行？" onConfirm={() => this.remove(record.name)}>
+              <Popconfirm title="是否要删除此行？" onConfirm={() => this.remove(record.key)}>
                 <a>删除</a>
               </Popconfirm>
             </span>
@@ -454,9 +400,9 @@ class AdvancedForm extends PureComponent {
 
     return (
       <PageHeaderWrapper>
-        <div>
+        <Fragment>
           <Button
-            style={{ width: '100%', marginTop: 3, marginBottom: 3 }}
+            style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
             type="dashed"
             onClick={this.newMember}
             icon="plus"
@@ -464,15 +410,27 @@ class AdvancedForm extends PureComponent {
             添加新品种
           </Button>
           <Table
-            pagination={{ total, showSizeChanger: true }}
-            scroll={{ x: 1400, y: 1000 }}
+            //expandedRowRender={expandedRowRender}
+            scroll={{ x: 1300, y: 1000 }}
             bordered
             loading={loading}
             columns={columns}
             dataSource={data}
+            pagination={false}
             rowClassName={record => (record.editable ? styles.editable : '')}
           />
-        </div>
+          <Button
+            style={{ width: '100%', marginTop: 16, marginBottom: 8 }}
+            type="dashed"
+            onClick={this.newMember}
+            icon="plus"
+          >
+            添加新品种
+          </Button>
+        </Fragment>
+        {/* {getFieldDecorator('members', {
+          initialValue: tableData,
+        })(<TableForm />)} */}
       </PageHeaderWrapper>
     );
   }

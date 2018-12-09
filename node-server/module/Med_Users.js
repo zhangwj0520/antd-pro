@@ -18,6 +18,10 @@ const MedUsersSchema = new Schema({
     type: String,
     rquired: true,
   },
+  currentAuthority:{
+    type:Array,
+    default:['newUser']
+  },
   create_at: {
     type: Date,
     default: Date.now,

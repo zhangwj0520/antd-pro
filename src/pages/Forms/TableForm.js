@@ -52,7 +52,7 @@ class TableForm extends PureComponent {
   newMember = () => {
     const { data } = this.state;
     const newData = data.map(item => ({ ...item }));
-    newData.push({
+    newData.unshift({
       key: `NEW_TEMP_ID_${this.index}`,
       workId: '',
       name: '',
